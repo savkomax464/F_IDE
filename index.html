@@ -3,13 +3,32 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>AI Code Editor</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html,
+        body {
+            overscroll-behavior: none;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        body {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
         }
         
          :root {
@@ -73,8 +92,10 @@
         }
         
         .nav-btn {
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
             border-radius: 7px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -84,6 +105,7 @@
             cursor: pointer;
             transition: all 0.15s ease;
             color: var(--text-secondary);
+            touch-action: manipulation;
         }
         
         .nav-btn:hover {
@@ -841,16 +863,65 @@
             background: rgba(255, 255, 255, 0.15);
             border-radius: 3px;
         }
-        
-         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
         /* Responsive for mobile */
         
         @media (max-width: 900px) {
             .settings-panel,
             .explorer-panel {
-                width: 280px;
+                width: 85vw;
+                max-width: 320px;
+            }
+            .tab {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .chat-messages {
+                padding: 12px;
+                gap: 10px;
+            }
+            .message {
+                max-width: 92%;
+                padding: 10px 12px;
+                font-size: 14px;
+                -webkit-user-select: text;
+                user-select: text;
+            }
+            .code-block {
+                font-size: 11px;
+                padding: 10px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                touch-action: pan-x;
+            }
+            .input-wrapper {
+                padding: 6px 10px;
+            }
+            .chat-input {
+                font-size: 16px;
+            }
+            .model-selector {
+                font-size: 12px;
+                padding: 4px 22px 4px 8px;
+            }
+            .keyboard-accessory {
+                gap: 4px;
+                padding: 6px 8px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .key-btn {
+                min-width: 36px;
+                height: 32px;
+                padding: 0 8px;
+                font-size: 12px;
+                flex-shrink: 0;
+            }
+            .explorer-action,
+            .explorer-close {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                min-height: 32px;
             }
         }
     </style>
@@ -1395,6 +1466,21 @@
                 chatInput.focus();
             });
         });
+
+        // Prevent double-tap zoom on iOS
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Prevent pinch zoom
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+        document.addEventListener('gesturechange', (e) => e.preventDefault());
+        document.addEventListener('gestureend', (e) => e.preventDefault());
     </script>
 </body>
 
