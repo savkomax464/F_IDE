@@ -461,6 +461,55 @@
             background: var(--glass-border);
             margin: 4px 0;
         }
+        /* Drag and drop */
+        
+        .tree-branch[draggable="true"] {
+            cursor: grab;
+        }
+        
+        .tree-branch.dragging {
+            opacity: 0.4;
+        }
+        
+        .tree-branch.drag-over>.file-item {
+            background: rgba(10, 132, 255, 0.15);
+            border-radius: 7px;
+            outline: 1px solid rgba(10, 132, 255, 0.4);
+        }
+        
+        .file-tree.drop-active {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+        /* New project select */
+        
+        .project-select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .project-select option {
+            background: #2a2a35;
+            color: #fff;
+        }
+        
+        .project-list-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
         
         .sidebar-title {
             font-size: 11px;
@@ -932,6 +981,13 @@
         <!-- Top Navigation Bar -->
         <nav class="top-nav glass">
             <div class="nav-left">
+                <button class="nav-btn" id="newProjectBtn" title="New Project">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                </button>
                 <button class="nav-btn settings-btn" id="settingsBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>
@@ -1100,59 +1156,7 @@
             <div class="explorer-actions-bar">
                 <button class="explorer-action-small" id="collapseAllBtn">Collapse All</button>
             </div>
-            <ul class="file-tree" id="fileTree">
-                <li class="tree-branch">
-                    <div class="file-item has-children" data-folder="src">
-                        <span class="folder-arrow">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                        </span>
-                        <span class="file-icon folder">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                        </span>
-                        <span class="file-name">src</span>
-                    </div>
-                    <ul class="folder-children">
-                        <li class="file-indent">
-                            <div class="file-item">
-                                <span class="file-icon js">JS</span>
-                                <span class="file-name">app.js</span>
-                            </div>
-                        </li>
-                        <li class="file-indent">
-                            <div class="file-item">
-                                <span class="file-icon py">PY</span>
-                                <span class="file-name">utils.py</span>
-                            </div>
-                        </li>
-                        <li class="file-indent">
-                            <div class="file-item">
-                                <span class="file-icon json">{ }</span>
-                                <span class="file-name">config.json</span>
-                            </div>
-                        </li>
-                        <li class="file-indent">
-                            <div class="file-item">
-                                <span class="file-icon js">JS</span>
-                                <span class="file-name">index.js</span>
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-                <li class="tree-branch">
-                    <div class="file-item">
-                        <span class="file-icon json">{ }</span>
-                        <span class="file-name">package.json</span>
-                    </div>
-                </li>
-                <li class="tree-branch">
-                    <div class="file-item">
-                        <span class="file-icon md">MD</span>
-                        <span class="file-name">README.md</span>
-                    </div>
-                </li>
-            </ul>
+            <ul class="file-tree" id="fileTree"></ul>
         </div>
 
         <!-- New File/Folder Modal -->
@@ -1163,6 +1167,21 @@
                 <div class="modal-buttons">
                     <button class="modal-btn cancel" id="modalCancel">Cancel</button>
                     <button class="modal-btn confirm" id="modalConfirm">Create</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Project Modal -->
+        <div class="modal-overlay" id="projectModalOverlay">
+            <div class="modal" style="width:300px;">
+                <h3>New Project</h3>
+                <input type="text" class="modal-input" id="projectNameInput" placeholder="my-project" autocomplete="off">
+                <div class="project-list-label" id="projectListLabel">Switch Project</div>
+                <select class="project-select" id="projectSelect"></select>
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel" id="projectModalCancel">Cancel</button>
+                    <button class="modal-btn confirm" id="projectModalCreate">Create</button>
+                    <button class="modal-btn confirm" id="projectModalSwitch" style="display:none;">Switch</button>
                 </div>
             </div>
         </div>
@@ -1195,7 +1214,214 @@
     </div>
 
     <script>
-        // Tab switching
+        // ========== Project Management ==========
+        let projects = JSON.parse(localStorage.getItem('ide_projects') || '{}');
+        let currentProjectName = localStorage.getItem('ide_current_project') || 'Default';
+
+        if (!projects[currentProjectName]) {
+            projects[currentProjectName] = getDefaultTree();
+            saveProjects();
+        }
+
+        function getDefaultTree() {
+            return [{
+                type: 'folder',
+                name: 'src',
+                children: [{
+                    type: 'file',
+                    name: 'app.js'
+                }, {
+                    type: 'file',
+                    name: 'utils.py'
+                }, {
+                    type: 'file',
+                    name: 'config.json'
+                }, {
+                    type: 'file',
+                    name: 'index.js'
+                }]
+            }, {
+                type: 'file',
+                name: 'package.json'
+            }, {
+                type: 'file',
+                name: 'README.md'
+            }];
+        }
+
+        function saveProjects() {
+            localStorage.setItem('ide_projects', JSON.stringify(projects));
+            localStorage.setItem('ide_current_project', currentProjectName);
+        }
+
+        function renderTree(tree, container, path = '') {
+            container.innerHTML = '';
+            if (!tree) tree = projects[currentProjectName] || getDefaultTree();
+
+            tree.forEach((item, i) => {
+                const li = document.createElement('li');
+                li.className = 'tree-branch';
+                li.setAttribute('draggable', 'true');
+                li.dataset.id = `branch-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
+                li.dataset.path = path + item.name;
+
+                if (item.type === 'folder') {
+                    li.innerHTML = `
+                        <div class="file-item has-children" data-folder="${item.name}">
+                            <span class="folder-arrow">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </span>
+                            <span class="file-icon folder">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                            </span>
+                            <span class="file-name">${item.name}</span>
+                        </div>
+                        <ul class="folder-children"></ul>
+                    `;
+                    const childUl = li.querySelector('.folder-children');
+                    const childPath = path + item.name + '/';
+                    if (item.children) {
+                        renderTree(item.children, childUl, childPath);
+                    }
+                } else {
+                    const ext = item.name.split('.').pop();
+                    const iconClass = getFileIconClass(ext);
+                    const iconLabel = iconClass ? iconClass.toUpperCase() : (ext || 'FILE');
+                    li.innerHTML = `
+                        <div class="file-item">
+                            <span class="file-icon ${iconClass}">${iconLabel}</span>
+                            <span class="file-name">${item.name}</span>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(li);
+                bindBranchEvents(li);
+            });
+        }
+
+        function getTreeFromDOM(container) {
+            const items = [];
+            container.querySelectorAll(':scope > .tree-branch').forEach(li => {
+                const hasChildren = li.querySelector('.file-item.has-children');
+                const nameEl = li.querySelector('.file-name');
+                if (!nameEl) return;
+                const name = nameEl.textContent;
+
+                if (hasChildren) {
+                    const folderName = hasChildren.dataset.folder;
+                    const childrenUl = li.querySelector('.folder-children');
+                    items.push({
+                        type: 'folder',
+                        name: folderName,
+                        children: childrenUl ? getTreeFromDOM(childrenUl) : []
+                    });
+                } else {
+                    items.push({
+                        type: 'file',
+                        name: name
+                    });
+                }
+            });
+            return items;
+        }
+
+        function bindBranchEvents(li) {
+            // Folder collapse
+            const hasChildren = li.querySelector('.file-item.has-children');
+            if (hasChildren) {
+                hasChildren.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    li.classList.toggle('collapsed');
+                });
+            }
+
+            // Context menu
+            li.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showContextMenu(e.clientX, e.clientY, li);
+            });
+
+            // Long press for mobile
+            let pressTimer;
+            li.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    const rect = li.getBoundingClientRect();
+                    showContextMenu(rect.right - 80, rect.top, li);
+                }, 600);
+            }, {
+                passive: true
+            });
+            li.addEventListener('touchend', () => clearTimeout(pressTimer));
+            li.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+            // Drag start
+            li.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', li.dataset.id);
+                e.dataTransfer.effectAllowed = 'move';
+                li.classList.add('dragging');
+                dragSource = li;
+            });
+            li.addEventListener('dragend', () => {
+                li.classList.remove('dragging');
+                clearDragHighlights();
+            });
+
+            // Drop target (folders only)
+            if (hasChildren) {
+                const folderChildren = li.querySelector('.folder-children');
+                li.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    li.classList.add('drag-over');
+                    folderChildren.classList.add('drag-over-target');
+                });
+                li.addEventListener('dragleave', (e) => {
+                    // Only remove if actually leaving the element
+                    if (!li.contains(e.relatedTarget)) {
+                        li.classList.remove('drag-over');
+                        folderChildren.classList.remove('drag-over-target');
+                    }
+                });
+                li.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    li.classList.remove('drag-over');
+                    folderChildren.classList.remove('drag-over-target');
+                    if (dragSource && dragSource !== li) {
+                        folderChildren.appendChild(dragSource);
+                        saveCurrentTree();
+                    }
+                    dragSource = null;
+                });
+            }
+        }
+
+        let dragSource = null;
+
+        function clearDragHighlights() {
+            document.querySelectorAll('.drag-over, .drag-over-target').forEach(el => {
+                el.classList.remove('drag-over', 'drag-over-target');
+            });
+        }
+
+        function saveCurrentTree() {
+            const fileTree = document.getElementById('fileTree');
+            projects[currentProjectName] = getTreeFromDOM(fileTree);
+            saveProjects();
+        }
+
+        function loadProject(name) {
+            if (!projects[name]) return;
+            currentProjectName = name;
+            saveProjects();
+            const fileTree = document.getElementById('fileTree');
+            renderTree(projects[name], fileTree);
+        }
+
+        // ========== Tab switching ==========
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1203,7 +1429,7 @@
             });
         });
 
-        // Settings panel
+        // ========== Settings panel ==========
         const settingsBtn = document.getElementById('settingsBtn');
         const settingsPanel = document.getElementById('settingsPanel');
         const settingsOverlay = document.getElementById('settingsOverlay');
@@ -1223,7 +1449,7 @@
         settingsClose.addEventListener('click', closeSettings);
         settingsOverlay.addEventListener('click', closeSettings);
 
-        // Explorer panel
+        // ========== Explorer panel ==========
         const explorerBtn = document.getElementById('explorerBtn');
         const explorerPanel = document.getElementById('explorerPanel');
         const explorerOverlay = document.getElementById('explorerOverlay');
@@ -1243,16 +1469,7 @@
         explorerClose.addEventListener('click', closeExplorer);
         explorerOverlay.addEventListener('click', closeExplorer);
 
-        // Folder collapse/expand
-        document.querySelectorAll('.file-item.has-children').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const branch = item.closest('.tree-branch');
-                branch.classList.toggle('collapsed');
-            });
-        });
-
-        // Collapse all button
+        // Collapse all
         document.getElementById('collapseAllBtn').addEventListener('click', () => {
             document.querySelectorAll('.tree-branch').forEach(branch => {
                 if (branch.querySelector('.file-item.has-children')) {
@@ -1261,7 +1478,49 @@
             });
         });
 
-        // Modal logic
+        // ========== Context Menu ==========
+        const contextMenu = document.getElementById('contextMenu');
+        let contextTarget = null;
+
+        function showContextMenu(x, y, target) {
+            contextTarget = target;
+            // Adjust position so menu stays in viewport
+            const menuW = 170;
+            const menuH = 130;
+            const maxX = window.innerWidth - menuW - 8;
+            const maxY = window.innerHeight - menuH - 8;
+            contextMenu.style.left = Math.min(x, maxX) + 'px';
+            contextMenu.style.top = Math.min(y, maxY) + 'px';
+            contextMenu.classList.add('open');
+        }
+
+        document.addEventListener('click', () => {
+            contextMenu.classList.remove('open');
+        });
+
+        document.querySelectorAll('.context-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const action = item.dataset.action;
+                contextMenu.classList.remove('open');
+                if (!contextTarget) return;
+
+                if (action === 'new-file') {
+                    const folderChildren = contextTarget.querySelector('.folder-children');
+                    const target = folderChildren || contextTarget.closest('.folder-children') || document.getElementById('fileTree');
+                    openModal('file', target);
+                } else if (action === 'new-folder') {
+                    const folderChildren = contextTarget.querySelector('.folder-children');
+                    const target = folderChildren || contextTarget.closest('.folder-children') || document.getElementById('fileTree');
+                    openModal('folder', target);
+                } else if (action === 'delete') {
+                    contextTarget.remove();
+                    saveCurrentTree();
+                }
+                contextTarget = null;
+            });
+        });
+
+        // ========== Modal logic ==========
         const modalOverlay = document.getElementById('modalOverlay');
         const modalTitle = document.getElementById('modalTitle');
         const modalInput = document.getElementById('modalInput');
@@ -1269,7 +1528,7 @@
         const modalConfirm = document.getElementById('modalConfirm');
 
         let modalType = 'file';
-        let modalTargetFolder = null; // null = root, or the <ul> element
+        let modalTargetFolder = null;
 
         function openModal(type, targetFolder) {
             modalType = type;
@@ -1301,28 +1560,25 @@
             if (e.key === 'Escape') closeModal();
         });
 
-        function getFileExtension(name) {
-            const parts = name.split('.');
-            return parts.length > 1 ? parts.pop() : '';
-        }
-
-        function getFileIconClass(ext) {
-            const map = {
-                js: 'js',
-                py: 'py',
-                json: 'json',
-                md: 'md'
-            };
-            return map[ext] || '';
-        }
-
         function createItem() {
             const name = modalInput.value.trim();
             if (!name) return;
 
+            let targetContainer;
+            if (modalTargetFolder && modalTargetFolder.id !== 'fileTree') {
+                targetContainer = modalTargetFolder;
+            } else if (modalTargetFolder && modalTargetFolder.id === 'fileTree') {
+                targetContainer = modalTargetFolder;
+            } else {
+                targetContainer = document.getElementById('fileTree');
+            }
+
             if (modalType === 'folder') {
                 const li = document.createElement('li');
                 li.className = 'tree-branch';
+                li.setAttribute('draggable', 'true');
+                li.dataset.id = `branch-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+                li.dataset.path = name;
                 li.innerHTML = `
                     <div class="file-item has-children" data-folder="${name}">
                         <span class="folder-arrow">
@@ -1337,107 +1593,141 @@
                     </div>
                     <ul class="folder-children"></ul>
                 `;
-                const target = modalTargetFolder || document.getElementById('fileTree');
-                target.appendChild(li);
-                li.querySelector('.file-item.has-children').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    li.classList.toggle('collapsed');
-                });
-                bindContextMenu(li);
+                targetContainer.appendChild(li);
+                bindBranchEvents(li);
             } else {
-                const ext = getFileExtension(name);
+                const ext = name.split('.').pop();
                 const iconClass = getFileIconClass(ext);
                 const iconLabel = iconClass ? iconClass.toUpperCase() : (ext || 'FILE');
-
-                let targetUl;
-                if (modalTargetFolder) {
-                    targetUl = modalTargetFolder;
-                } else {
-                    targetUl = document.getElementById('fileTree');
-                }
-
                 const li = document.createElement('li');
                 li.className = 'tree-branch';
+                li.setAttribute('draggable', 'true');
+                li.dataset.id = `branch-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+                li.dataset.path = name;
                 li.innerHTML = `
                     <div class="file-item">
                         <span class="file-icon ${iconClass}">${iconLabel}</span>
                         <span class="file-name">${name}</span>
                     </div>
                 `;
-                targetUl.appendChild(li);
-                bindContextMenu(li);
+                targetContainer.appendChild(li);
+                bindBranchEvents(li);
             }
 
             closeModal();
+            saveCurrentTree();
         }
 
         modalConfirm.addEventListener('click', createItem);
 
-        // New file / new folder buttons in header
         document.getElementById('newFileBtn').addEventListener('click', () => openModal('file', null));
         document.getElementById('newFolderBtn').addEventListener('click', () => openModal('folder', null));
 
-        // Context menu
-        const contextMenu = document.getElementById('contextMenu');
-        let contextTarget = null;
+        // ========== New Project Modal ==========
+        const projectModalOverlay = document.getElementById('projectModalOverlay');
+        const projectNameInput = document.getElementById('projectNameInput');
+        const projectSelect = document.getElementById('projectSelect');
+        const projectModalCancel = document.getElementById('projectModalCancel');
+        const projectModalCreate = document.getElementById('projectModalCreate');
+        const projectModalSwitch = document.getElementById('projectModalSwitch');
+        const projectListLabel = document.getElementById('projectListLabel');
 
-        function bindContextMenu(el) {
-            el.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                contextTarget = el;
-                contextMenu.style.left = e.clientX + 'px';
-                contextMenu.style.top = e.clientY + 'px';
-                contextMenu.classList.add('open');
+        function openProjectModal() {
+            projectNameInput.value = '';
+            projectModalCreate.style.display = '';
+            projectModalSwitch.style.display = 'none';
+            projectListLabel.style.display = 'none';
+            populateProjectSelect();
+            projectModalOverlay.classList.add('open');
+            setTimeout(() => projectNameInput.focus(), 100);
+        }
+
+        function populateProjectSelect() {
+            const names = Object.keys(projects);
+            if (names.length <= 1) {
+                projectSelect.style.display = 'none';
+                projectListLabel.style.display = 'none';
+                return;
+            }
+            projectSelect.style.display = '';
+            projectListLabel.style.display = '';
+            projectSelect.innerHTML = '';
+            names.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name + (name === currentProjectName ? ' (current)' : '');
+                if (name === currentProjectName) opt.selected = true;
+                projectSelect.appendChild(opt);
             });
         }
 
-        document.querySelectorAll('.tree-branch').forEach(bindContextMenu);
-
-        document.addEventListener('click', () => {
-            contextMenu.classList.remove('open');
+        projectModalCancel.addEventListener('click', () => projectModalOverlay.classList.remove('open'));
+        projectModalOverlay.addEventListener('click', (e) => {
+            if (e.target === projectModalOverlay) projectModalOverlay.classList.remove('open');
         });
 
-        document.querySelectorAll('.context-menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const action = item.dataset.action;
-                contextMenu.classList.remove('open');
-                if (!contextTarget) return;
-
-                if (action === 'new-file') {
-                    const hasChildren = contextTarget.querySelector('.file-item.has-children');
-                    const target = hasChildren ?
-                        contextTarget.querySelector('.folder-children') :
-                        contextTarget.closest('.folder-children') || document.getElementById('fileTree');
-                    openModal('file', target);
-                } else if (action === 'new-folder') {
-                    const hasChildren = contextTarget.querySelector('.file-item.has-children');
-                    const target = hasChildren ?
-                        contextTarget.querySelector('.folder-children') :
-                        contextTarget.closest('.folder-children') || document.getElementById('fileTree');
-                    openModal('folder', target);
-                } else if (action === 'delete') {
-                    contextTarget.remove();
-                }
-                contextTarget = null;
-            });
+        projectModalCreate.addEventListener('click', () => {
+            const name = projectNameInput.value.trim() || 'Untitled Project';
+            if (projects[name]) {
+                // Switch to existing
+                loadProject(name);
+                const fileTree = document.getElementById('fileTree');
+                renderTree(projects[name], fileTree);
+            } else {
+                projects[name] = getDefaultTree();
+                loadProject(name);
+                const fileTree = document.getElementById('fileTree');
+                renderTree(projects[name], fileTree);
+            }
+            projectModalOverlay.classList.remove('open');
         });
 
-        // Re-bind context menu for dynamically added items
-        const observer = new MutationObserver(() => {
-            document.querySelectorAll('.tree-branch').forEach(el => {
-                if (!el.dataset.bound) {
-                    el.dataset.bound = 'true';
-                    bindContextMenu(el);
-                }
-            });
-        });
-        observer.observe(document.getElementById('fileTree'), {
-            childList: true,
-            subtree: true
+        projectModalSwitch.addEventListener('click', () => {
+            const name = projectSelect.value;
+            if (name && projects[name]) {
+                loadProject(name);
+                const fileTree = document.getElementById('fileTree');
+                renderTree(projects[name], fileTree);
+            }
+            projectModalOverlay.classList.remove('open');
         });
 
-        // Send message
+        projectSelect.addEventListener('change', () => {
+            const name = projectSelect.value;
+            if (name && projects[name]) {
+                loadProject(name);
+                const fileTree = document.getElementById('fileTree');
+                renderTree(projects[name], fileTree);
+                projectModalOverlay.classList.remove('open');
+            }
+        });
+
+        projectNameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') projectModalCreate.click();
+            if (e.key === 'Escape') projectModalOverlay.classList.remove('open');
+        });
+
+        document.getElementById('newProjectBtn').addEventListener('click', openProjectModal);
+
+        // ========== File icon helper ==========
+        function getFileIconClass(ext) {
+            const map = {
+                js: 'js',
+                ts: 'js',
+                py: 'py',
+                json: 'json',
+                md: 'md',
+                css: 'js',
+                html: 'json'
+            };
+            return map[ext] || '';
+        }
+
+        // ========== Render initial tree ==========
+        const initialTree = projects[currentProjectName] || getDefaultTree();
+        renderTree(initialTree, document.getElementById('fileTree'));
+
+        // ========== Send message ==========
         const chatInput = document.querySelector('.chat-input');
         const sendBtn = document.getElementById('sendBtn');
         const chatMessages = document.querySelector('.chat-messages');
@@ -1445,7 +1735,6 @@
         function sendMessage() {
             const text = chatInput.value.trim();
             if (!text) return;
-
             const userMsg = document.createElement('div');
             userMsg.className = 'message user';
             userMsg.textContent = text;
@@ -1467,17 +1756,14 @@
             });
         });
 
-        // Prevent double-tap zoom on iOS
+        // Prevent double-tap zoom
         let lastTouchEnd = 0;
         document.addEventListener('touchend', (e) => {
             const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                e.preventDefault();
-            }
+            if (now - lastTouchEnd <= 300) e.preventDefault();
             lastTouchEnd = now;
         }, false);
 
-        // Prevent pinch zoom
         document.addEventListener('gesturestart', (e) => e.preventDefault());
         document.addEventListener('gesturechange', (e) => e.preventDefault());
         document.addEventListener('gestureend', (e) => e.preventDefault());
