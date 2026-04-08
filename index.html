@@ -1467,12 +1467,17 @@
             const LONG_PRESS_MS = 400;
 
             li.addEventListener('touchstart', (e) => {
+                // Don't start drag if touch is on a nested tree-branch (child file/folder)
+                const nestedBranch = e.target.closest('.tree-branch');
+                if (nestedBranch && nestedBranch !== li) return;
+
                 const t = e.touches[0];
                 startX = t.clientX;
                 startY = t.clientY;
                 currentDropTarget = null;
 
                 pressTimer = setTimeout(() => {
+                    // Double-check no nested branch was entered
                     if (!li._dragClone) {
                         startDrag(li, t.clientX, t.clientY);
                     }
@@ -1533,6 +1538,12 @@
             // ===== Desktop HTML5 drag & drop =====
             li.setAttribute('draggable', 'true');
             li.addEventListener('dragstart', (e) => {
+                // Don't drag parent when dragging a child item
+                const nestedBranch = e.target.closest('.tree-branch');
+                if (nestedBranch && nestedBranch !== li) {
+                    e.preventDefault();
+                    return;
+                }
                 e.dataTransfer.setData('text/plain', li.dataset.id);
                 e.dataTransfer.effectAllowed = 'move';
                 li.classList.add('dragging');
