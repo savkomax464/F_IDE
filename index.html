@@ -520,24 +520,24 @@
             margin-bottom: 12px;
             padding: 0 8px;
         }
-
         /* Inline item action buttons */
+        
         .file-item {
             position: relative;
         }
-
+        
         .item-actions {
             display: none;
             gap: 2px;
             margin-left: auto;
             flex-shrink: 0;
         }
-
+        
         .file-item:hover .item-actions,
         .file-item .item-actions.visible {
             display: flex;
         }
-
+        
         .item-action-btn {
             width: 22px;
             height: 22px;
@@ -554,12 +554,12 @@
             transition: all 0.1s ease;
             padding: 0;
         }
-
+        
         .item-action-btn:hover {
             background: rgba(255, 255, 255, 0.12);
             color: var(--text-primary);
         }
-
+        
         .item-action-btn.danger:hover {
             background: rgba(255, 107, 138, 0.2);
             color: #ff6b8a;
@@ -1236,7 +1236,6 @@
     </div>
 
     <script>
-        
         // ========== Tab switching ==========
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -1289,22 +1288,41 @@
         let fileTreeData = null;
 
         function getDefaultTree() {
-            return [
-                {
-                    type: 'folder', name: 'src', children: [
-                        { type: 'file', name: 'app.js' },
-                        { type: 'file', name: 'utils.py' },
-                        { type: 'file', name: 'config.json' },
-                        { type: 'file', name: 'index.js' }
-                    ]
-                },
-                { type: 'file', name: 'package.json' },
-                { type: 'file', name: 'README.md' }
-            ];
+            return [{
+                type: 'folder',
+                name: 'src',
+                children: [{
+                    type: 'file',
+                    name: 'app.js'
+                }, {
+                    type: 'file',
+                    name: 'utils.py'
+                }, {
+                    type: 'file',
+                    name: 'config.json'
+                }, {
+                    type: 'file',
+                    name: 'index.js'
+                }]
+            }, {
+                type: 'file',
+                name: 'package.json'
+            }, {
+                type: 'file',
+                name: 'README.md'
+            }];
         }
 
         function getFileIconClass(ext) {
-            const map = { js: 'js', ts: 'js', py: 'py', json: 'json', md: 'md', css: 'js', html: 'json' };
+            const map = {
+                js: 'js',
+                ts: 'js',
+                py: 'py',
+                json: 'json',
+                md: 'md',
+                css: 'js',
+                html: 'json'
+            };
             return map[ext] || '';
         }
 
@@ -1387,7 +1405,10 @@
                         children: childrenUl ? getTreeFromDOM(childrenUl) : []
                     });
                 } else {
-                    items.push({ type: 'file', name: name });
+                    items.push({
+                        type: 'file',
+                        name: name
+                    });
                 }
             });
             return items;
@@ -1439,7 +1460,8 @@
 
             // ===== Touch: long press = drag =====
             let pressTimer = null;
-            let startX = 0, startY = 0;
+            let startX = 0,
+                startY = 0;
             let currentDropTarget = null;
             const DRAG_THRESHOLD = 12;
             const LONG_PRESS_MS = 400;
@@ -1455,7 +1477,9 @@
                         startDrag(li, t.clientX, t.clientY);
                     }
                 }, LONG_PRESS_MS);
-            }, { passive: true });
+            }, {
+                passive: true
+            });
 
             li.addEventListener('touchmove', (e) => {
                 const t = e.touches[0];
@@ -1485,7 +1509,9 @@
                         currentDropTarget = null;
                     }
                 }
-            }, { passive: false });
+            }, {
+                passive: false
+            });
 
             li.addEventListener('touchend', () => {
                 clearTimeout(pressTimer);
@@ -1688,6 +1714,17 @@
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                         </span>
                         <span class="file-name">${name}</span>
+                        <div class="item-actions">
+                            <button class="item-action-btn" data-action="add-file" title="Add File">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                            </button>
+                            <button class="item-action-btn" data-action="add-folder" title="Add Folder">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                            </button>
+                            <button class="item-action-btn danger" data-action="delete" title="Delete">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
                     </div>
                     <ul class="folder-children"></ul>
                 `;
@@ -1706,6 +1743,11 @@
                     <div class="file-item">
                         <span class="file-icon ${iconClass}">${iconLabel}</span>
                         <span class="file-name">${name}</span>
+                        <div class="item-actions">
+                            <button class="item-action-btn danger" data-action="delete" title="Delete">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
                     </div>
                 `;
                 targetContainer.appendChild(li);
