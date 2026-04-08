@@ -520,6 +520,50 @@
             margin-bottom: 12px;
             padding: 0 8px;
         }
+
+        /* Inline item action buttons */
+        .file-item {
+            position: relative;
+        }
+
+        .item-actions {
+            display: none;
+            gap: 2px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .file-item:hover .item-actions,
+        .file-item .item-actions.visible {
+            display: flex;
+        }
+
+        .item-action-btn {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            min-height: 22px;
+            border-radius: 4px;
+            border: none;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            padding: 0;
+        }
+
+        .item-action-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-primary);
+        }
+
+        .item-action-btn.danger:hover {
+            background: rgba(255, 107, 138, 0.2);
+            color: #ff6b8a;
+        }
         
         .file-tree {
             list-style: none;
@@ -1122,13 +1166,6 @@
             <div class="explorer-header">
                 <h2>Explorer</h2>
                 <div style="display:flex;gap:6px;align-items:center;">
-                    <button class="explorer-action" id="newProjectBtn" title="New Project">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                            <line x1="12" y1="11" x2="12" y2="17"></line>
-                            <line x1="9" y1="14" x2="15" y2="14"></line>
-                        </svg>
-                    </button>
                     <button class="explorer-action" id="newFileBtn" title="New File">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -1171,21 +1208,6 @@
             </div>
         </div>
 
-        <!-- New Project Modal -->
-        <div class="modal-overlay" id="projectModalOverlay">
-            <div class="modal" style="width:300px;">
-                <h3>New Project</h3>
-                <input type="text" class="modal-input" id="projectNameInput" placeholder="my-project" autocomplete="off">
-                <div class="project-list-label" id="projectListLabel">Switch Project</div>
-                <select class="project-select" id="projectSelect"></select>
-                <div class="modal-buttons">
-                    <button class="modal-btn cancel" id="projectModalCancel">Cancel</button>
-                    <button class="modal-btn confirm" id="projectModalCreate">Create</button>
-                    <button class="modal-btn confirm" id="projectModalSwitch" style="display:none;">Switch</button>
-                </div>
-            </div>
-        </div>
-
         <!-- Context Menu -->
         <div class="context-menu" id="contextMenu">
             <div class="context-menu-item" data-action="new-file">
@@ -1214,56 +1236,87 @@
     </div>
 
     <script>
-        // ========== Project Management ==========
-        let projects = JSON.parse(localStorage.getItem('ide_projects') || '{}');
-        let currentProjectName = localStorage.getItem('ide_current_project') || 'Default';
+        
+        // ========== Tab switching ==========
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
 
-        if (!projects[currentProjectName]) {
-            projects[currentProjectName] = getDefaultTree();
-            saveProjects();
+        // ========== Settings panel ==========
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const settingsClose = document.getElementById('settingsClose');
+
+        function openSettings() {
+            settingsPanel.classList.add('open');
+            settingsOverlay.classList.add('open');
         }
+
+        function closeSettings() {
+            settingsPanel.classList.remove('open');
+            settingsOverlay.classList.remove('open');
+        }
+
+        settingsBtn.addEventListener('click', openSettings);
+        settingsClose.addEventListener('click', closeSettings);
+        settingsOverlay.addEventListener('click', closeSettings);
+
+        // ========== Explorer panel ==========
+        const explorerBtn = document.getElementById('explorerBtn');
+        const explorerPanel = document.getElementById('explorerPanel');
+        const explorerOverlay = document.getElementById('explorerOverlay');
+        const explorerClose = document.getElementById('explorerClose');
+
+        function openExplorer() {
+            explorerPanel.classList.add('open');
+            explorerOverlay.classList.add('open');
+        }
+
+        function closeExplorer() {
+            explorerPanel.classList.remove('open');
+            explorerOverlay.classList.remove('open');
+        }
+
+        explorerBtn.addEventListener('click', openExplorer);
+        explorerClose.addEventListener('click', closeExplorer);
+        explorerOverlay.addEventListener('click', closeExplorer);
+
+        // ========== File Tree Data ==========
+        let fileTreeData = null;
 
         function getDefaultTree() {
-            return [{
-                type: 'folder',
-                name: 'src',
-                children: [{
-                    type: 'file',
-                    name: 'app.js'
-                }, {
-                    type: 'file',
-                    name: 'utils.py'
-                }, {
-                    type: 'file',
-                    name: 'config.json'
-                }, {
-                    type: 'file',
-                    name: 'index.js'
-                }]
-            }, {
-                type: 'file',
-                name: 'package.json'
-            }, {
-                type: 'file',
-                name: 'README.md'
-            }];
+            return [
+                {
+                    type: 'folder', name: 'src', children: [
+                        { type: 'file', name: 'app.js' },
+                        { type: 'file', name: 'utils.py' },
+                        { type: 'file', name: 'config.json' },
+                        { type: 'file', name: 'index.js' }
+                    ]
+                },
+                { type: 'file', name: 'package.json' },
+                { type: 'file', name: 'README.md' }
+            ];
         }
 
-        function saveProjects() {
-            localStorage.setItem('ide_projects', JSON.stringify(projects));
-            localStorage.setItem('ide_current_project', currentProjectName);
+        function getFileIconClass(ext) {
+            const map = { js: 'js', ts: 'js', py: 'py', json: 'json', md: 'md', css: 'js', html: 'json' };
+            return map[ext] || '';
         }
 
-        function renderTree(tree, container, path = '') {
+        function renderTree(tree, container) {
             container.innerHTML = '';
-            if (!tree) tree = projects[currentProjectName] || getDefaultTree();
+            if (!tree) tree = fileTreeData;
 
-            tree.forEach((item, i) => {
+            tree.forEach((item) => {
                 const li = document.createElement('li');
                 li.className = 'tree-branch';
                 li.setAttribute('draggable', 'true');
-                li.dataset.id = `branch-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
-                li.dataset.path = path + item.name;
+                li.dataset.id = `branch-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
 
                 if (item.type === 'folder') {
                     li.innerHTML = `
@@ -1277,13 +1330,23 @@
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                             </span>
                             <span class="file-name">${item.name}</span>
+                            <div class="item-actions">
+                                <button class="item-action-btn" data-action="add-file" title="Add File">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                                </button>
+                                <button class="item-action-btn" data-action="add-folder" title="Add Folder">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                                </button>
+                                <button class="item-action-btn danger" data-action="delete" title="Delete">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            </div>
                         </div>
                         <ul class="folder-children"></ul>
                     `;
                     const childUl = li.querySelector('.folder-children');
-                    const childPath = path + item.name + '/';
                     if (item.children) {
-                        renderTree(item.children, childUl, childPath);
+                        renderTree(item.children, childUl);
                     }
                 } else {
                     const ext = item.name.split('.').pop();
@@ -1293,6 +1356,11 @@
                         <div class="file-item">
                             <span class="file-icon ${iconClass}">${iconLabel}</span>
                             <span class="file-name">${item.name}</span>
+                            <div class="item-actions">
+                                <button class="item-action-btn danger" data-action="delete" title="Delete">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            </div>
                         </div>
                     `;
                 }
@@ -1319,21 +1387,44 @@
                         children: childrenUl ? getTreeFromDOM(childrenUl) : []
                     });
                 } else {
-                    items.push({
-                        type: 'file',
-                        name: name
-                    });
+                    items.push({ type: 'file', name: name });
                 }
             });
             return items;
         }
 
+        function saveCurrentTree() {
+            const fileTree = document.getElementById('fileTree');
+            fileTreeData = getTreeFromDOM(fileTree);
+            localStorage.setItem('ide_tree', JSON.stringify(fileTreeData));
+        }
+
         function bindBranchEvents(li) {
             const hasChildren = li.querySelector('.file-item.has-children');
+
+            // Inline action buttons
+            li.querySelectorAll('.item-action-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const action = btn.dataset.action;
+
+                    if (action === 'delete') {
+                        li.remove();
+                        saveCurrentTree();
+                    } else if (action === 'add-file') {
+                        const folderChildren = li.querySelector('.folder-children');
+                        openModal('file', folderChildren);
+                    } else if (action === 'add-folder') {
+                        const folderChildren = li.querySelector('.folder-children');
+                        openModal('folder', folderChildren);
+                    }
+                });
+            });
 
             // Folder collapse
             if (hasChildren) {
                 hasChildren.addEventListener('click', (e) => {
+                    if (e.target.closest('.item-action-btn')) return;
                     e.stopPropagation();
                     li.classList.toggle('collapsed');
                 });
@@ -1348,7 +1439,6 @@
 
             // ===== Touch: long press = drag =====
             let pressTimer = null;
-            let dragClone = null;
             let startX = 0, startY = 0;
             let currentDropTarget = null;
             const DRAG_THRESHOLD = 12;
@@ -1358,11 +1448,10 @@
                 const t = e.touches[0];
                 startX = t.clientX;
                 startY = t.clientY;
-                dragClone = null;
                 currentDropTarget = null;
 
                 pressTimer = setTimeout(() => {
-                    if (!dragClone) {
+                    if (!li._dragClone) {
                         startDrag(li, t.clientX, t.clientY);
                     }
                 }, LONG_PRESS_MS);
@@ -1477,68 +1566,6 @@
                 el.classList.remove('drag-over');
             });
         }
-
-        function saveCurrentTree() {
-            const fileTree = document.getElementById('fileTree');
-            projects[currentProjectName] = getTreeFromDOM(fileTree);
-            saveProjects();
-        }
-
-        function loadProject(name) {
-            if (!projects[name]) return;
-            currentProjectName = name;
-            saveProjects();
-            const fileTree = document.getElementById('fileTree');
-            renderTree(projects[name], fileTree);
-        }
-
-        // ========== Tab switching ==========
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-            });
-        });
-
-        // ========== Settings panel ==========
-        const settingsBtn = document.getElementById('settingsBtn');
-        const settingsPanel = document.getElementById('settingsPanel');
-        const settingsOverlay = document.getElementById('settingsOverlay');
-        const settingsClose = document.getElementById('settingsClose');
-
-        function openSettings() {
-            settingsPanel.classList.add('open');
-            settingsOverlay.classList.add('open');
-        }
-
-        function closeSettings() {
-            settingsPanel.classList.remove('open');
-            settingsOverlay.classList.remove('open');
-        }
-
-        settingsBtn.addEventListener('click', openSettings);
-        settingsClose.addEventListener('click', closeSettings);
-        settingsOverlay.addEventListener('click', closeSettings);
-
-        // ========== Explorer panel ==========
-        const explorerBtn = document.getElementById('explorerBtn');
-        const explorerPanel = document.getElementById('explorerPanel');
-        const explorerOverlay = document.getElementById('explorerOverlay');
-        const explorerClose = document.getElementById('explorerClose');
-
-        function openExplorer() {
-            explorerPanel.classList.add('open');
-            explorerOverlay.classList.add('open');
-        }
-
-        function closeExplorer() {
-            explorerPanel.classList.remove('open');
-            explorerOverlay.classList.remove('open');
-        }
-
-        explorerBtn.addEventListener('click', openExplorer);
-        explorerClose.addEventListener('click', closeExplorer);
-        explorerOverlay.addEventListener('click', closeExplorer);
 
         // Collapse all
         document.getElementById('collapseAllBtn').addEventListener('click', () => {
@@ -1694,92 +1721,6 @@
         document.getElementById('newFileBtn').addEventListener('click', () => openModal('file', null));
         document.getElementById('newFolderBtn').addEventListener('click', () => openModal('folder', null));
 
-        // ========== New Project Modal ==========
-        const projectModalOverlay = document.getElementById('projectModalOverlay');
-        const projectNameInput = document.getElementById('projectNameInput');
-        const projectSelect = document.getElementById('projectSelect');
-        const projectModalCancel = document.getElementById('projectModalCancel');
-        const projectModalCreate = document.getElementById('projectModalCreate');
-        const projectModalSwitch = document.getElementById('projectModalSwitch');
-        const projectListLabel = document.getElementById('projectListLabel');
-
-        function openProjectModal() {
-            projectNameInput.value = '';
-            projectModalCreate.style.display = '';
-            projectModalSwitch.style.display = 'none';
-            projectListLabel.style.display = 'none';
-            populateProjectSelect();
-            projectModalOverlay.classList.add('open');
-            setTimeout(() => projectNameInput.focus(), 100);
-        }
-
-        function populateProjectSelect() {
-            const names = Object.keys(projects);
-            if (names.length <= 1) {
-                projectSelect.style.display = 'none';
-                projectListLabel.style.display = 'none';
-                return;
-            }
-            projectSelect.style.display = '';
-            projectListLabel.style.display = '';
-            projectSelect.innerHTML = '';
-            names.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.textContent = name + (name === currentProjectName ? ' (current)' : '');
-                if (name === currentProjectName) opt.selected = true;
-                projectSelect.appendChild(opt);
-            });
-        }
-
-        projectModalCancel.addEventListener('click', () => projectModalOverlay.classList.remove('open'));
-        projectModalOverlay.addEventListener('click', (e) => {
-            if (e.target === projectModalOverlay) projectModalOverlay.classList.remove('open');
-        });
-
-        projectModalCreate.addEventListener('click', () => {
-            const name = projectNameInput.value.trim() || 'Untitled Project';
-            if (projects[name]) {
-                // Switch to existing
-                loadProject(name);
-                const fileTree = document.getElementById('fileTree');
-                renderTree(projects[name], fileTree);
-            } else {
-                projects[name] = getDefaultTree();
-                loadProject(name);
-                const fileTree = document.getElementById('fileTree');
-                renderTree(projects[name], fileTree);
-            }
-            projectModalOverlay.classList.remove('open');
-        });
-
-        projectModalSwitch.addEventListener('click', () => {
-            const name = projectSelect.value;
-            if (name && projects[name]) {
-                loadProject(name);
-                const fileTree = document.getElementById('fileTree');
-                renderTree(projects[name], fileTree);
-            }
-            projectModalOverlay.classList.remove('open');
-        });
-
-        projectSelect.addEventListener('change', () => {
-            const name = projectSelect.value;
-            if (name && projects[name]) {
-                loadProject(name);
-                const fileTree = document.getElementById('fileTree');
-                renderTree(projects[name], fileTree);
-                projectModalOverlay.classList.remove('open');
-            }
-        });
-
-        projectNameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') projectModalCreate.click();
-            if (e.key === 'Escape') projectModalOverlay.classList.remove('open');
-        });
-
-        document.getElementById('newProjectBtn').addEventListener('click', openProjectModal);
-
         // ========== File icon helper ==========
         function getFileIconClass(ext) {
             const map = {
@@ -1795,8 +1736,8 @@
         }
 
         // ========== Render initial tree ==========
-        const initialTree = projects[currentProjectName] || getDefaultTree();
-        renderTree(initialTree, document.getElementById('fileTree'));
+        fileTreeData = JSON.parse(localStorage.getItem('ide_tree') || 'null') || getDefaultTree();
+        renderTree(fileTreeData, document.getElementById('fileTree'));
 
         // ========== Send message ==========
         const chatInput = document.querySelector('.chat-input');
